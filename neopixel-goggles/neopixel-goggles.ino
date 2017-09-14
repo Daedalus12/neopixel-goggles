@@ -12,25 +12,62 @@
 //   NEO_RGB     Pixels are wired for RGB bitstream (v1 FLORA pixels, not v2)
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(STRIPSIZE, PIN, NEO_GRB + NEO_KHZ800);
 
+// Define some basic colors
+typedef uint32_t color;
+color white = strip.Color(255, 255, 255);
+color red = strip.Color(64, 0, 0);
+color green = strip.Color(0, 64, 0);
+color blue = strip.Color(0, 0, 64);
+
+const uint8_t MIN_BRIGHTNESS = 100;
+const uint8_t MAX_BRIGHTNESS = 254;
+const uint8_t BRIGHTNESS_INCREMENT = 2;
+
+uint8_t currentBrightness = MIN_BRIGHTNESS;
+bool increaseBrightness = true;
+
 void setup() {
     strip.begin();
-    strip.setBrightness(150);  // Lower brightness and save eyeballs!
-    strip.show(); // Initialize all pixels to 'off'
+    strip.setBrightness(MAX_BRIGHTNESS);
+    strip.show();
+    Serial.begin(9600);
+    Serial.println("--- Start Serial Monitor ---");
 }
 
 void loop() {
-    // Some example procedures showing how to display to the pixels:
-    colorWipe(strip.Color(0, 0, 0), 25); // Black
-    colorWipe(strip.Color(64, 0, 0), 100); // Red
-    colorWipe(strip.Color(0, 64, 0), 100); // Green
-    colorWipe(strip.Color(0, 0, 64), 100); // Blue
-    colorWave(75);
-    colorWipe(strip.Color(0, 0, 0), 100); // Black
-    rainbow(15);
-    colorWipe(strip.Color(0, 0, 0), 100); // Black
-    rainbowCycle(15);
-    colorWipe(strip.Color(0, 0, 0), 100); // Black
-    colorWave(30);
+    Serial.println("Loop");
+    Serial.println(currentBrightness);
+
+    if (increaseBrightness == true) {
+        if (MAX_BRIGHTNESS - currentBrightness > BRIGHTNESS_INCREMENT) {
+            currentBrightness += BRIGHTNESS_INCREMENT;
+        } else {
+            currentBrightness = MAX_BRIGHTNESS;
+            increaseBrightness = false;
+        }
+    } else {
+        if (currentBrightness - MIN_BRIGHTNESS > BRIGHTNESS_INCREMENT) {
+            currentBrightness -= BRIGHTNESS_INCREMENT;
+        } else {
+            currentBrightness = MIN_BRIGHTNESS;
+            increaseBrightness = true;
+
+        }
+    }
+
+    Serial.println(currentBrightness);
+
+    setColor(strip.Color(currentBrightness, 255-currentBrightness, 0));
+
+    strip.show();
+    delayMicroseconds(16);
+}
+
+void setColor(uint32_t c) {
+    for (uint16_t i = 0; i < strip.numPixels(); i++) {
+        strip.setPixelColor(i, c);
+    }
+    strip.show();
 }
 
 // Fill the dots one after the other with a color
