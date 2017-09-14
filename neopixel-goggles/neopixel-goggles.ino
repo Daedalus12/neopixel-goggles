@@ -38,7 +38,6 @@ void setup() {
 
 void loop() {
     setColor(strip.Color(cosCurve[i], cosCurve[i], cosCurve[i]));
-    //strip.setBrightness(cosCurve[i]);
     strip.show();
     delayMicroseconds(16);
     ++i;
