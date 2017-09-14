@@ -19,48 +19,34 @@ color red = strip.Color(64, 0, 0);
 color green = strip.Color(0, 64, 0);
 color blue = strip.Color(0, 0, 64);
 
-const uint8_t MIN_BRIGHTNESS = 100;
-const uint8_t MAX_BRIGHTNESS = 254;
-const uint8_t BRIGHTNESS_INCREMENT = 2;
+const uint8_t MIN_BRIGHTNESS = 0;
+const uint8_t MAX_BRIGHTNESS = 255;
 
-uint8_t currentBrightness = MIN_BRIGHTNESS;
-bool increaseBrightness = true;
+const uint16_t cosN = 2000;
+uint8_t cosCurve[cosN];
+uint16_t i = 0;
 
 void setup() {
     strip.begin();
     strip.setBrightness(MAX_BRIGHTNESS);
     strip.show();
-    Serial.begin(9600);
-    Serial.println("--- Start Serial Monitor ---");
+
+    for (uint16_t j = 0; j < cosN; ++j) {
+        cosCurve[j] = MIN_BRIGHTNESS + 0.5*(MAX_BRIGHTNESS - MIN_BRIGHTNESS)*(1 + cos(PI * 2 * j / cosN));        
+    }
 }
 
 void loop() {
-    Serial.println("Loop");
-    Serial.println(currentBrightness);
-
-    if (increaseBrightness == true) {
-        if (MAX_BRIGHTNESS - currentBrightness > BRIGHTNESS_INCREMENT) {
-            currentBrightness += BRIGHTNESS_INCREMENT;
-        } else {
-            currentBrightness = MAX_BRIGHTNESS;
-            increaseBrightness = false;
-        }
-    } else {
-        if (currentBrightness - MIN_BRIGHTNESS > BRIGHTNESS_INCREMENT) {
-            currentBrightness -= BRIGHTNESS_INCREMENT;
-        } else {
-            currentBrightness = MIN_BRIGHTNESS;
-            increaseBrightness = true;
-
-        }
-    }
-
-    Serial.println(currentBrightness);
-
-    setColor(strip.Color(currentBrightness, 255-currentBrightness, 0));
-
+    setColor(strip.Color(cosCurve[i], 255- cosCurve[i], 0));
     strip.show();
     delayMicroseconds(16);
+    ++i;
+    if (i == cosN) {
+        i = 0;
+        delay(1500);
+    } else if (i == cosN/2) {
+        delay(1500);
+    }
 }
 
 void setColor(uint32_t c) {
