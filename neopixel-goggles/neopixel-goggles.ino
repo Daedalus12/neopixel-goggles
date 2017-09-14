@@ -1,4 +1,3 @@
-//#include "ColorPulse.h"
 #include <Adafruit_NeoPixel.h>
 
 #define PIN A0
@@ -12,19 +11,6 @@
 //   NEO_GRB     Pixels are wired for GRB bitstream (most NeoPixel products)
 //   NEO_RGB     Pixels are wired for RGB bitstream (v1 FLORA pixels, not v2)
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(STRIPSIZE, PIN, NEO_GRB + NEO_KHZ800);
-
-// Define some basic colors
-typedef uint32_t color;
-color white = strip.Color(255, 255, 255);
-color red = strip.Color(255, 0, 0);
-color green = strip.Color(0, 255, 0);
-color blue = strip.Color(0, 0, 255);
-
-const uint8_t MIN_BRIGHTNESS = 127;
-const uint8_t MAX_BRIGHTNESS = 255;
-
-const uint16_t cosN = 127;
-uint16_t i = 0;
 
 uint32_t hsi2rgb(float H, float S, float I) {
     uint8_t r, g, b;
@@ -66,21 +52,37 @@ void setup() {
     strip.show();
 }
 
+byte hues[STRIPSIZE];
+byte saturations[STRIPSIZE];
+
+const uint16_t nCycles = 63;
+const byte cycleTime = 15;
+uint16_t i = 0;
 void loop() {
     double intensity, saturation;
-    float val = cos(i * 2.0 * PI / cosN);
+    float val = cos(i * 2.0 * PI / nCycles + PI);
     trigScale(intensity, val, 0.2, 1.0);
     trigScale(saturation, val, 0.0, 1.0);
 
-    setColor(hsi2rgb(0, 0, intensity));
-    strip.setPixelColor(0, hsi2rgb(0, saturation, intensity));
+    for (byte k = 0; k < STRIPSIZE; ++k)
+        strip.setPixelColor(k, hsi2rgb(hues[k], saturations[k]*saturation, intensity));
+
     strip.show();
     ++i;
-    if (i == cosN) {
+    if (i == nCycles) {
         i = 0;
+        for (byte k = 0; k < STRIPSIZE; ++k)
+        {
+            saturations[k] = 0;
+            hues[k] = random(0, 360);
+        }
+
+        for (byte k = 0; k < random(3, 9); ++k) {
+            saturations[random(0, STRIPSIZE + 1)] = 1;
+        }
     }
 
-    delay(14);
+    delay(cycleTime);
 }
 
 void setColor(uint32_t c) {
