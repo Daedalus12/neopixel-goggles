@@ -46,22 +46,30 @@ trigScale(T& ret, const float& val, const T& valMin, const T& valMax) {
     ret = valMin + 0.5*(valMax - valMin)*(1 + val);
 }
 
+uint32_t hues[STRIPSIZE];
+byte saturations[STRIPSIZE];
+
 void setup() {
     strip.begin();
     strip.setBrightness(255); // should only be called once
     strip.show();
-}
 
-byte hues[STRIPSIZE];
-byte saturations[STRIPSIZE];
+    for (byte k = 0; k < STRIPSIZE; ++k)
+    {
+        saturations[k] = 0;
+        hues[k] = 0;
+    }
+
+}
 
 const uint16_t nCycles = 63;
 const byte cycleTime = 15;
 uint16_t i = 0;
+
 void loop() {
     double intensity, saturation;
     float val = cos(i * 2.0 * PI / nCycles + PI);
-    trigScale(intensity, val, 0.2, 1.0);
+    trigScale(intensity, val, 0.35, 1.0);
     trigScale(saturation, val, 0.0, 1.0);
 
     for (byte k = 0; k < STRIPSIZE; ++k)
@@ -73,13 +81,15 @@ void loop() {
         i = 0;
         for (byte k = 0; k < STRIPSIZE; ++k)
         {
-            saturations[k] = 0;
-            hues[k] = random(0, 360);
+            if (random(5) == 0) {
+                saturations[k] = 1;
+                hues[k] = random(180, 270);
+            } else {
+                saturations[k] = 0;
+                hues[k] = 0;
+            }
         }
 
-        for (byte k = 0; k < random(3, 9); ++k) {
-            saturations[random(0, STRIPSIZE + 1)] = 1;
-        }
     }
 
     delay(cycleTime);
